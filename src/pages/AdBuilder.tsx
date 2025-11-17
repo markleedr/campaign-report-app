@@ -238,10 +238,10 @@ const AdBuilder = () => {
                   <Label htmlFor="linkUrl">Link URL</Label>
                   <Input
                     id="linkUrl"
-                    type="url"
+                    type="text"
                     value={adData.linkUrl}
                     onChange={(e) => setAdData({ ...adData, linkUrl: e.target.value })}
-                    placeholder="https://example.com"
+                    placeholder="example.com"
                   />
                 </div>
 
