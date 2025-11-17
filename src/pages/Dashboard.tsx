@@ -51,15 +51,9 @@ const Dashboard = () => {
 
       <main className="mx-auto px-6 py-8">
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-              <p className="text-muted-foreground">Manage your clients and ad proofs</p>
-            </div>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <Plus className="mr-2 h-4 w-4" />
-              New
-            </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground">Manage your clients and ad proofs</p>
           </div>
         </div>
 
