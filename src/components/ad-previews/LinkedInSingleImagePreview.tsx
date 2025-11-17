@@ -8,6 +8,8 @@ interface LinkedInSingleImagePreviewProps {
   description?: string;
   linkUrl?: string;
   callToAction?: string;
+  clientName?: string;
+  clientLogoUrl?: string;
 }
 
 export const LinkedInSingleImagePreview = ({
@@ -17,16 +19,24 @@ export const LinkedInSingleImagePreview = ({
   description,
   linkUrl,
   callToAction,
+  clientName = "Your Brand",
+  clientLogoUrl,
 }: LinkedInSingleImagePreviewProps) => {
   return (
     <div className="w-full max-w-[550px] bg-background border border-border rounded-lg overflow-hidden shadow-sm">
       {/* Profile Header */}
       <div className="p-4 flex items-start gap-3">
-        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-          <span className="text-sm font-semibold text-muted-foreground">YB</span>
+        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
+          {clientLogoUrl ? (
+            <img src={clientLogoUrl} alt={clientName} className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-sm font-semibold text-muted-foreground">
+              {clientName?.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || 'YB'}
+            </span>
+          )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-sm text-foreground">Your Brand</div>
+          <div className="font-semibold text-sm text-foreground">{clientName}</div>
           <div className="text-xs text-muted-foreground">58,360 followers</div>
           <div className="text-xs text-muted-foreground">Promoted</div>
         </div>

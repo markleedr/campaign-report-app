@@ -7,6 +7,8 @@ interface InstagramSingleImagePreviewProps {
   headline?: string;
   description?: string;
   callToAction?: string;
+  clientName?: string;
+  clientLogoUrl?: string;
 }
 
 export const InstagramSingleImagePreview = ({
@@ -15,18 +17,24 @@ export const InstagramSingleImagePreview = ({
   headline,
   description,
   callToAction,
+  clientName = "Your Brand",
+  clientLogoUrl,
 }: InstagramSingleImagePreviewProps) => {
   return (
     <div className="w-full max-w-[500px] bg-background border border-border rounded-sm overflow-hidden shadow-sm">
       {/* Profile Header */}
       <div className="p-3 flex items-center gap-2 border-b border-border">
         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 p-0.5">
-          <div className="w-full h-full rounded-full bg-background flex items-center justify-center">
-            <span className="text-xs font-semibold text-muted-foreground">L</span>
+          <div className="w-full h-full rounded-full bg-background flex items-center justify-center overflow-hidden">
+            {clientLogoUrl ? (
+              <img src={clientLogoUrl} alt={clientName} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-xs font-semibold text-muted-foreground">L</span>
+            )}
           </div>
         </div>
         <div className="flex-1">
-          <div className="font-semibold text-sm text-foreground">yourbrand</div>
+          <div className="font-semibold text-sm text-foreground">{clientName?.toLowerCase().replace(/\s+/g, '')}</div>
           <div className="text-xs text-muted-foreground">Sponsored</div>
         </div>
         <div className="text-foreground">⋯</div>
@@ -56,7 +64,7 @@ export const InstagramSingleImagePreview = ({
         <div className="text-sm">
           {primaryText && (
             <p className="text-foreground">
-              <span className="font-semibold mr-1">yourbrand</span>
+              <span className="font-semibold mr-1">{clientName?.toLowerCase().replace(/\s+/g, '')}</span>
               {primaryText}
             </p>
           )}

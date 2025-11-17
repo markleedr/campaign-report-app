@@ -8,6 +8,8 @@ interface FacebookSingleImagePreviewProps {
   description?: string;
   linkUrl?: string;
   callToAction?: string;
+  clientName?: string;
+  clientLogoUrl?: string;
 }
 
 export const FacebookSingleImagePreview = ({
@@ -17,16 +19,22 @@ export const FacebookSingleImagePreview = ({
   description,
   linkUrl,
   callToAction,
+  clientName = "Your Brand",
+  clientLogoUrl,
 }: FacebookSingleImagePreviewProps) => {
   return (
     <div className="w-full max-w-[500px] bg-background border border-border rounded-lg overflow-hidden shadow-sm">
       {/* Profile Header */}
       <div className="p-3 flex items-center gap-2">
-        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-          <span className="text-xs font-semibold text-muted-foreground">LOGO</span>
+        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+          {clientLogoUrl ? (
+            <img src={clientLogoUrl} alt={clientName} className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-xs font-semibold text-muted-foreground">LOGO</span>
+          )}
         </div>
         <div className="flex-1">
-          <div className="font-semibold text-sm text-foreground">Your Brand</div>
+          <div className="font-semibold text-sm text-foreground">{clientName}</div>
           <div className="text-xs text-muted-foreground">Sponsored</div>
         </div>
       </div>

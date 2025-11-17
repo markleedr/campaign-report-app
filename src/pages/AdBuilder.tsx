@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,6 +48,21 @@ const AdBuilder = () => {
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
+
+  // Fetch campaign and client data
+  const { data: campaignData } = useQuery({
+    queryKey: ["campaign", campaignId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("campaigns")
+        .select("*, clients(*)")
+        .eq("id", campaignId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!campaignId,
+  });
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -283,6 +298,8 @@ const AdBuilder = () => {
                     description={adData.description}
                     linkUrl={adData.linkUrl}
                     callToAction={adData.callToAction}
+                    clientName={campaignData?.clients?.name}
+                    clientLogoUrl={campaignData?.clients?.logo_url}
                   />
                 )}
                 {platform === "facebook" && format === "story" && (
@@ -292,6 +309,8 @@ const AdBuilder = () => {
                     headline={adData.headline}
                     description={adData.description}
                     callToAction={adData.callToAction}
+                    clientName={campaignData?.clients?.name}
+                    clientLogoUrl={campaignData?.clients?.logo_url}
                   />
                 )}
                 {platform === "instagram" && format === "single_image" && (
@@ -301,6 +320,8 @@ const AdBuilder = () => {
                     headline={adData.headline}
                     description={adData.description}
                     callToAction={adData.callToAction}
+                    clientName={campaignData?.clients?.name}
+                    clientLogoUrl={campaignData?.clients?.logo_url}
                   />
                 )}
                 {platform === "instagram" && format === "story" && (
@@ -310,6 +331,8 @@ const AdBuilder = () => {
                     headline={adData.headline}
                     description={adData.description}
                     callToAction={adData.callToAction}
+                    clientName={campaignData?.clients?.name}
+                    clientLogoUrl={campaignData?.clients?.logo_url}
                   />
                 )}
                 {platform === "linkedin" && format === "single_image" && (
@@ -320,6 +343,8 @@ const AdBuilder = () => {
                     description={adData.description}
                     linkUrl={adData.linkUrl}
                     callToAction={adData.callToAction}
+                    clientName={campaignData?.clients?.name}
+                    clientLogoUrl={campaignData?.clients?.logo_url}
                   />
                 )}
               </div>
