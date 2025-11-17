@@ -48,8 +48,8 @@ export const CreateCampaignDialog = ({
       toast.success("Campaign created successfully");
       onOpenChange(false);
       setCampaignName("");
-      // Navigate to campaign builder page
-      navigate(`/campaign/${campaign.id}/builder`);
+      // Navigate to ad creation page with campaign ID
+      navigate(`/create?campaignId=${campaign.id}`);
     },
     onError: (error) => {
       toast.error("Failed to create campaign");
