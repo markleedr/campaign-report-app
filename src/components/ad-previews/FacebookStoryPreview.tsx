@@ -7,6 +7,8 @@ interface FacebookStoryPreviewProps {
   headline?: string;
   description?: string;
   callToAction?: string;
+  clientName?: string;
+  clientLogoUrl?: string;
 }
 
 export const FacebookStoryPreview = ({
@@ -15,17 +17,23 @@ export const FacebookStoryPreview = ({
   headline,
   description,
   callToAction,
+  clientName = "Your Brand",
+  clientLogoUrl,
 }: FacebookStoryPreviewProps) => {
   return (
     <div className="w-full max-w-[375px] aspect-[9/16] bg-background border border-border rounded-lg overflow-hidden shadow-lg relative">
       {/* Story Header */}
       <div className="absolute top-0 left-0 right-0 p-3 bg-gradient-to-b from-black/60 to-transparent z-10">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-            <span className="text-xs font-semibold text-muted-foreground">L</span>
+          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+            {clientLogoUrl ? (
+              <img src={clientLogoUrl} alt={clientName} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-xs font-semibold text-muted-foreground">L</span>
+            )}
           </div>
           <div className="flex-1">
-            <div className="font-semibold text-sm text-white">Your Brand</div>
+            <div className="font-semibold text-sm text-white">{clientName}</div>
             <div className="text-xs text-white/80">Sponsored</div>
           </div>
           <div className="text-white text-2xl">×</div>
