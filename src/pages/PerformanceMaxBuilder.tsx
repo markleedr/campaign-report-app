@@ -56,21 +56,32 @@ const PerformanceMaxBuilder = () => {
 
   const [assetGroups, setAssetGroups] = useState<AssetGroup[]>([
     {
-      name: "",
-      finalUrl: "",
-      mobileUrl: "",
-      headlines: [""],
-      longHeadline: "",
-      descriptions: [""],
-      businessName: "",
+      name: "Spring Collection 2024",
+      finalUrl: "https://example.com/spring-collection",
+      mobileUrl: "https://m.example.com/spring-collection",
+      headlines: [
+        "New Spring Collection Available",
+        "Shop Latest Spring Styles",
+        "Fresh Looks for Spring 2024",
+        "Discover Your Spring Style",
+        "Spring Fashion Starts Here"
+      ],
+      longHeadline: "Discover Our Complete Spring 2024 Collection - Fresh Styles, Premium Quality, Free Shipping",
+      descriptions: [
+        "Explore our newest spring arrivals with vibrant colors and modern designs perfect for the season.",
+        "Premium quality fabrics and contemporary styles that bring spring fashion to life.",
+        "Get free shipping on orders over $50. Shop now and refresh your wardrobe for spring.",
+        "Limited time offer - save up to 30% on select spring collection items today."
+      ],
+      businessName: "Stockwell Fashion",
       landscapeImages: [],
       squareImages: [],
       portraitImages: [],
       logos: [],
-      videos: [],
-      cta: "",
-      displayPath1: "",
-      displayPath2: "",
+      videos: ["https://example.com/spring-video.mp4"],
+      cta: "Shop Now",
+      displayPath1: "spring",
+      displayPath2: "collection",
     },
   ]);
 
