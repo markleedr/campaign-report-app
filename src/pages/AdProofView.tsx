@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Save, Upload } from "lucide-react";
+import { ArrowLeft, Save, Upload, Share2 } from "lucide-react";
 import { toast } from "sonner";
+import { ShareAdProofDialog } from "@/components/ShareAdProofDialog";
 
 // Previews
 import { FacebookSingleImagePreview } from "@/components/ad-previews/FacebookSingleImagePreview";
@@ -69,6 +70,7 @@ const AdProofView = () => {
   const [uploading, setUploading] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const autoSaveTimerRef = useRef<NodeJS.Timeout>();
   const initialDataRef = useRef<string>("");
 
@@ -316,6 +318,13 @@ const AdProofView = () => {
             {hasUnsavedChanges && (
               <span className="text-sm text-muted-foreground">Unsaved changes</span>
             )}
+            <Button 
+              variant="outline"
+              onClick={() => setShareDialogOpen(true)}
+              disabled={isLoading}
+            >
+              <Share2 className="mr-2 h-4 w-4" /> Share
+            </Button>
             <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || isLoading || !hasUnsavedChanges}>
               <Save className="mr-2 h-4 w-4" /> {saveMutation.isPending ? "Saving..." : "Save as New Version"}
             </Button>
@@ -466,6 +475,15 @@ const AdProofView = () => {
           </Card>
         </div>
       </main>
+
+      {/* Share Dialog */}
+      {adProof && (
+        <ShareAdProofDialog 
+          open={shareDialogOpen}
+          onOpenChange={setShareDialogOpen}
+          shareToken={adProof.share_token}
+        />
+      )}
     </div>
   );
 };

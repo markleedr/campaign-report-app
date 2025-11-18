@@ -27,6 +27,7 @@ import {
 import { Plus, Edit, Trash2, Share2, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { ShareAdProofDialog } from "@/components/ShareAdProofDialog";
 
 const platforms = [
   { value: "google-pmax", label: "Google Performance Max" },
@@ -45,6 +46,9 @@ const CampaignDetail = () => {
   const [shareOpen, setShareOpen] = useState(false);
   const [editName, setEditName] = useState("");
   const [editPlatform, setEditPlatform] = useState("");
+  const [selectedAdProofShareToken, setSelectedAdProofShareToken] = useState<string>("");
+  const [adProofShareDialogOpen, setAdProofShareDialogOpen] = useState(false);
+  const [deleteAdProofId, setDeleteAdProofId] = useState<string>("");
 
   const { data: campaign, isLoading } = useQuery({
     queryKey: ["campaign", campaignId],
@@ -113,6 +117,25 @@ const CampaignDetail = () => {
     },
     onError: () => {
       toast.error("Failed to delete campaign");
+    },
+  });
+
+  const deleteAdProofMutation = useMutation({
+    mutationFn: async (adProofId: string) => {
+      const { error } = await supabase
+        .from("ad_proofs")
+        .delete()
+        .eq("id", adProofId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ad-proofs", campaignId] });
+      toast.success("Ad proof deleted successfully");
+      setDeleteAdProofId("");
+    },
+    onError: () => {
+      toast.error("Failed to delete ad proof");
     },
   });
 
@@ -270,9 +293,35 @@ const CampaignDetail = () => {
                         Version {proof.current_version} • {proof.status}
                       </p>
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => navigate(`/ad/${proof.id}`)}>
-                      View
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setSelectedAdProofShareToken(proof.share_token);
+                          setAdProofShareDialogOpen(true);
+                        }}
+                      >
+                        <Share2 className="mr-1 h-3 w-3" />
+                        share
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => navigate(`/ad/${proof.id}`)}
+                      >
+                        <Edit className="mr-1 h-3 w-3" />
+                        edit
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setDeleteAdProofId(proof.id)}
+                      >
+                        <Trash2 className="mr-1 h-3 w-3" />
+                        delete
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -377,6 +426,34 @@ const CampaignDetail = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Delete Ad Proof Confirmation */}
+      <AlertDialog open={!!deleteAdProofId} onOpenChange={() => setDeleteAdProofId("")}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this ad proof and all its versions.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteAdProofMutation.mutate(deleteAdProofId)}
+              disabled={deleteAdProofMutation.isPending}
+            >
+              {deleteAdProofMutation.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Share Ad Proof Dialog */}
+      <ShareAdProofDialog 
+        open={adProofShareDialogOpen}
+        onOpenChange={setAdProofShareDialogOpen}
+        shareToken={selectedAdProofShareToken}
+      />
     </div>
   );
 };
