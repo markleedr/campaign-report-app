@@ -22,16 +22,16 @@ const Navigation = () => {
   };
 
   return (
-    <header className="border-b bg-background">
+    <header className="border-b border-primary/20 bg-background">
       <div className="mx-auto flex h-16 items-center justify-between px-6">
-        <Link to="/dashboard" className="text-xl font-bold text-foreground">
-          Ad Proof Manager
+        <Link to="/dashboard" className="text-xl font-bold text-primary hover:text-primary/80 transition-colors">
+          Ad Proof
         </Link>
 
         <Button 
           variant="ghost" 
           size="sm" 
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 hover:bg-primary/10 hover:text-primary"
           onClick={handleSignOut}
         >
           <LogOut className="h-4 w-4" />
