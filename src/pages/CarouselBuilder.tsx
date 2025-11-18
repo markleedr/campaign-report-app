@@ -26,7 +26,7 @@ interface CarouselCardData {
   imagePreview: string;
   headline: string;
   description: string;
-  url: string;
+  url?: string; // Optional, only for LinkedIn
 }
 
 const CarouselBuilder = () => {
@@ -485,17 +485,19 @@ const CarouselBuilder = () => {
                         />
                       </div>
 
-                      {/* Card URL */}
-                      <div className="space-y-2">
-                        <Label htmlFor={`card-url-${index}`}>Website URL *</Label>
-                        <Input
-                          id={`card-url-${index}`}
-                          value={card.url}
-                          onChange={(e) => updateCardField(index, "url", e.target.value)}
-                          placeholder="www.example.com"
-                          type="url"
-                        />
-                      </div>
+                      {/* Card URL - only for LinkedIn */}
+                      {platform === "linkedin" && (
+                        <div className="space-y-2">
+                          <Label htmlFor={`card-url-${index}`}>Website URL *</Label>
+                          <Input
+                            id={`card-url-${index}`}
+                            value={card.url || ""}
+                            onChange={(e) => updateCardField(index, "url", e.target.value)}
+                            placeholder="www.example.com"
+                            type="url"
+                          />
+                        </div>
+                      )}
                     </Card>
                   ))}
                 </div>

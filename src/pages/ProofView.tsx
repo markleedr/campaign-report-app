@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ThumbsUp, MessageSquare, Loader2 } from "lucide-react";
+import { ThumbsUp, MessageSquare, Loader2, CheckCircle } from "lucide-react";
+import { toast } from "sonner";
 import { FacebookSingleImagePreview } from "@/components/ad-previews/FacebookSingleImagePreview";
 import { FacebookStoryPreview } from "@/components/ad-previews/FacebookStoryPreview";
 import { FacebookCarouselPreview } from "@/components/ad-previews/FacebookCarouselPreview";
@@ -21,7 +22,11 @@ import { GooglePerformanceMaxPreview } from "@/components/ad-previews/GooglePerf
 
 const ProofView = () => {
   const { shareToken } = useParams();
+  const queryClient = useQueryClient();
   const [selectedVersion, setSelectedVersion] = useState<number | null>(null);
+  const [approverName, setApproverName] = useState("");
+  const [comment, setComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: adProofData, isLoading } = useQuery({
     queryKey: ["adProof", shareToken],
@@ -43,7 +48,16 @@ const ProofView = () => {
 
       if (versionsError) throw versionsError;
 
-      return { adProof, versions };
+      // Fetch approvals
+      const { data: approvals, error: approvalsError } = await supabase
+        .from("approvals")
+        .select("*")
+        .eq("ad_proof_id", adProof.id)
+        .order("created_at", { ascending: false });
+
+      if (approvalsError) throw approvalsError;
+
+      return { adProof, versions, approvals: approvals || [] };
     },
   });
 
@@ -75,10 +89,63 @@ const ProofView = () => {
     );
   }
 
-  const { adProof, versions } = adProofData;
+  const { adProof, versions, approvals } = adProofData;
   const adData = currentVersion.ad_data as any;
   const campaign = adProof.campaigns as any;
   const client = campaign?.clients;
+
+  const submitFeedback = useMutation({
+    mutationFn: async (decision: "approved" | "revision") => {
+      setIsSubmitting(true);
+      
+      // Insert approval
+      const { error: approvalError } = await supabase
+        .from("approvals")
+        .insert({
+          ad_proof_id: adProof.id,
+          version_number: selectedVersion || adProof.current_version,
+          decision,
+          comment,
+          approver_name: approverName,
+        });
+
+      if (approvalError) throw approvalError;
+
+      // Send email notification
+      try {
+        await supabase.functions.invoke("send-approval-notification", {
+          body: {
+            adProofId: adProof.id,
+            approverName,
+            decision,
+            comment,
+            campaignName: campaign.name,
+            clientName: client.name,
+          },
+        });
+      } catch (emailError) {
+        console.error("Email notification failed:", emailError);
+      }
+
+      return decision;
+    },
+    onSuccess: (decision) => {
+      setIsSubmitting(false);
+      toast.success(
+        decision === "approved" 
+          ? "Your approval has been submitted!" 
+          : "Your revision request has been submitted!"
+      );
+      setApproverName("");
+      setComment("");
+      queryClient.invalidateQueries({ queryKey: ["adProof", shareToken] });
+    },
+    onError: (error) => {
+      setIsSubmitting(false);
+      toast.error("Failed to submit feedback. Please try again.");
+      console.error(error);
+    },
+  });
 
   const renderPreview = () => {
     const platform = adProof.platform;
@@ -246,7 +313,13 @@ const ProofView = () => {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Your Name *</Label>
-                  <Input id="name" placeholder="Enter your name" />
+                  <Input 
+                    id="name" 
+                    placeholder="Enter your name" 
+                    value={approverName}
+                    onChange={(e) => setApproverName(e.target.value)}
+                    disabled={isSubmitting}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="comment">Comment *</Label>
@@ -254,14 +327,26 @@ const ProofView = () => {
                     id="comment"
                     placeholder="Please provide your feedback..."
                     rows={5}
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div className="flex gap-3">
-                  <Button className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
+                  <Button 
+                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                    onClick={() => submitFeedback.mutate("approved")}
+                    disabled={!approverName.trim() || !comment.trim() || isSubmitting}
+                  >
                     <ThumbsUp className="mr-2 h-4 w-4" />
                     Approve
                   </Button>
-                  <Button className="flex-1" variant="outline">
+                  <Button 
+                    className="flex-1" 
+                    variant="outline"
+                    onClick={() => submitFeedback.mutate("revision")}
+                    disabled={!approverName.trim() || !comment.trim() || isSubmitting}
+                  >
                     <MessageSquare className="mr-2 h-4 w-4" />
                     Request Revision
                   </Button>
@@ -275,7 +360,35 @@ const ProofView = () => {
                 <CardTitle>Comments & History</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">No comments yet</p>
+                {approvals && approvals.length > 0 ? (
+                  <div className="space-y-4">
+                    {approvals.map((approval: any) => (
+                      <div key={approval.id} className="border-b pb-4 last:border-0">
+                        <div className="flex items-start gap-2 mb-2">
+                          {approval.decision === "approved" ? (
+                            <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                          ) : (
+                            <MessageSquare className="h-5 w-5 text-orange-600 mt-0.5" />
+                          )}
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <p className="font-medium text-sm">{approval.approver_name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(approval.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <p className="text-xs text-muted-foreground mb-1">
+                              {approval.decision === "approved" ? "Approved" : "Requested Revision"} - Version {approval.version_number}
+                            </p>
+                            <p className="text-sm mt-1">{approval.comment}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No feedback yet</p>
+                )}
               </CardContent>
             </Card>
           </div>
