@@ -142,8 +142,14 @@ const CarouselBuilder = () => {
     setCards(newCards);
   };
 
+  const getMaxCards = () => {
+    if (platform === "facebook" || platform === "instagram") return 5;
+    if (platform === "linkedin") return 10;
+    return 10;
+  };
+
   const addCard = () => {
-    if (cards.length < 10) {
+    if (cards.length < getMaxCards()) {
       setCards([...cards, { imageFile: null, imagePreview: "", headline: "", description: "", url: "" }]);
     }
   };
@@ -378,8 +384,8 @@ const CarouselBuilder = () => {
                 {/* Carousel Cards */}
                 <div className="space-y-4 border-t pt-4">
                   <div className="flex items-center justify-between">
-                    <Label>Carousel Cards ({cards.length})</Label>
-                    {cards.length < 10 && (
+                    <Label>Carousel Cards ({cards.length}/{getMaxCards()})</Label>
+                    {cards.length < getMaxCards() && (
                       <Button type="button" variant="outline" size="sm" onClick={addCard}>
                         <Plus className="h-4 w-4 mr-1" />
                         Add Card
