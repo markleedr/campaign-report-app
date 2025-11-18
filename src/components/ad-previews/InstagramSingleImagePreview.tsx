@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Send, Bookmark } from "lucide-react";
+import { Heart, MessageCircle, Send, Bookmark, ChevronRight } from "lucide-react";
 
 interface InstagramSingleImagePreviewProps {
   primaryText?: string;
@@ -40,14 +40,29 @@ export const InstagramSingleImagePreview = ({
         <div className="text-foreground">⋯</div>
       </div>
 
-      {/* Ad Image */}
-      {imageUrl ? (
-        <img src={imageUrl} alt="Ad" className="w-full aspect-square object-cover" />
-      ) : (
-        <div className="w-full aspect-square bg-muted flex items-center justify-center">
-          <span className="text-muted-foreground">Ad Image</span>
-        </div>
-      )}
+      {/* Ad Image with CTA */}
+      <div className="relative">
+        {imageUrl ? (
+          <img src={imageUrl} alt="Ad" className="w-full aspect-square object-cover" />
+        ) : (
+          <div className="w-full aspect-square bg-muted flex items-center justify-center">
+            <span className="text-muted-foreground">Ad Image</span>
+          </div>
+        )}
+        
+        {/* CTA Button overlaying bottom of image */}
+        {callToAction && (
+          <div className="absolute bottom-0 left-0 right-0 p-3">
+            <Button 
+              className="w-full bg-white/95 hover:bg-white text-primary border-0 shadow-sm font-medium justify-between"
+              size="sm"
+            >
+              {callToAction}
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
+      </div>
 
       {/* Engagement Bar */}
       <div className="p-3 space-y-2">
@@ -75,13 +90,6 @@ export const InstagramSingleImagePreview = ({
             <p className="text-muted-foreground text-xs mt-1">{description}</p>
           )}
         </div>
-
-        {/* CTA Button */}
-        {callToAction && (
-          <Button variant="outline" size="sm" className="w-full mt-2">
-            {callToAction}
-          </Button>
-        )}
       </div>
     </div>
   );
