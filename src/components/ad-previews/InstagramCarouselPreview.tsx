@@ -94,11 +94,11 @@ export const InstagramCarouselPreview = ({
           style={{ transform: `translateX(-${currentCard * 100}%)` }}
         >
           {cards.map((cardItem, idx) => (
-            <div key={idx} className="min-w-full flex-shrink-0">
+            <div key={idx} className="min-w-full flex-shrink-0 aspect-square">
               {cardItem.imageUrl ? (
-                <img src={cardItem.imageUrl} alt={cardItem.headline} className="w-full aspect-square object-cover" />
+                <img src={cardItem.imageUrl} alt={cardItem.headline} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                <div className="w-full h-full bg-muted flex items-center justify-center">
                   <span className="text-muted-foreground">Card {idx + 1} Image</span>
                 </div>
               )}
