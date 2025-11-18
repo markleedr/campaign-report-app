@@ -23,6 +23,12 @@ const AdBuilder = () => {
   const format = searchParams.get("format");
   const queryClient = useQueryClient();
 
+  // Redirect to Performance Max builder if needed
+  if (platform === "google_pmax" && format === "pmax") {
+    navigate(`/pmax-builder?campaignId=${campaignId}&platform=${platform}&format=${format}`, { replace: true });
+    return null;
+  }
+
   const platformNames: Record<string, string> = {
     facebook: "Facebook",
     instagram: "Instagram",

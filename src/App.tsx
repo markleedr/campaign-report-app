@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import CreateAdProof from "./pages/CreateAdProof";
 import AdBuilder from "./pages/AdBuilder";
 import CarouselBuilder from "./pages/CarouselBuilder";
+import PerformanceMaxBuilder from "./pages/PerformanceMaxBuilder";
 import ProofView from "./pages/ProofView";
 import CampaignDetail from "./pages/CampaignDetail";
 import CampaignView from "./pages/CampaignView";
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/create" element={<CreateAdProof />} />
           <Route path="/ad-builder" element={<AdBuilder />} />
           <Route path="/carousel-builder" element={<CarouselBuilder />} />
+          <Route path="/pmax-builder" element={<PerformanceMaxBuilder />} />
           <Route path="/create/:platform/:format" element={<Dashboard />} />
           <Route path="/campaign/:campaignId" element={<CampaignDetail />} />
           <Route path="/campaign/:campaignId/builder" element={<CampaignBuilder />} />
