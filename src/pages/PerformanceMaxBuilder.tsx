@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,7 @@ const PerformanceMaxBuilder = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const campaignId = searchParams.get("campaignId");
+  const adProofId = searchParams.get("adProofId");
   const queryClient = useQueryClient();
 
   const ctaOptions = [
@@ -57,32 +58,21 @@ const PerformanceMaxBuilder = () => {
 
   const [assetGroups, setAssetGroups] = useState<AssetGroup[]>([
     {
-      name: "Spring Collection 2024",
-      finalUrl: "https://example.com/spring-collection",
-      mobileUrl: "https://m.example.com/spring-collection",
-      headlines: [
-        "New Spring Collection Available",
-        "Shop Latest Spring Styles",
-        "Fresh Looks for Spring 2024",
-        "Discover Your Spring Style",
-        "Spring Fashion Starts Here"
-      ],
-      longHeadline: "Discover Our Complete Spring 2024 Collection - Fresh Styles, Premium Quality, Free Shipping",
-      descriptions: [
-        "Explore our newest spring arrivals with vibrant colors and modern designs perfect for the season.",
-        "Premium quality fabrics and contemporary styles that bring spring fashion to life.",
-        "Get free shipping on orders over $50. Shop now and refresh your wardrobe for spring.",
-        "Limited time offer - save up to 30% on select spring collection items today."
-      ],
-      businessName: "Stockwell Fashion",
+      name: "",
+      finalUrl: "",
+      mobileUrl: "",
+      headlines: [""],
+      longHeadline: "",
+      descriptions: [""],
+      businessName: "",
       landscapeImages: [],
       squareImages: [],
       portraitImages: [],
       logos: [],
-      videos: ["https://example.com/spring-video.mp4"],
-      cta: "Shop Now",
-      displayPath1: "spring",
-      displayPath2: "collection",
+      videos: [],
+      cta: "",
+      displayPath1: "",
+      displayPath2: "",
     },
   ]);
 
@@ -98,6 +88,64 @@ const PerformanceMaxBuilder = () => {
     type: "landscape",
     groupIndex: 0,
   });
+
+  // Fetch existing ad proof data when editing
+  const { data: existingAdProof } = useQuery({
+    queryKey: ["ad-proof", adProofId],
+    queryFn: async () => {
+      if (!adProofId) return null;
+      
+      const { data: adProof, error: adProofError } = await supabase
+        .from("ad_proofs")
+        .select("*")
+        .eq("id", adProofId)
+        .single();
+      
+      if (adProofError) throw adProofError;
+      
+      const { data: version, error: versionError } = await supabase
+        .from("ad_proof_versions")
+        .select("*")
+        .eq("ad_proof_id", adProofId)
+        .eq("version_number", adProof.current_version)
+        .single();
+      
+      if (versionError) throw versionError;
+      
+      return { adProof, version };
+    },
+    enabled: !!adProofId,
+  });
+
+  // Load existing data into state
+  useEffect(() => {
+    if (existingAdProof?.version?.ad_data) {
+      const adData = existingAdProof.version.ad_data as any;
+      if (adData.assetGroups && Array.isArray(adData.assetGroups)) {
+        // Convert image URLs back to ImageAsset format
+        const loadedGroups = adData.assetGroups.map((group: any) => ({
+          ...group,
+          landscapeImages: (group.landscapeImages || []).map((url: string) => ({
+            file: null,
+            preview: url,
+          })),
+          squareImages: (group.squareImages || []).map((url: string) => ({
+            file: null,
+            preview: url,
+          })),
+          portraitImages: (group.portraitImages || []).map((url: string) => ({
+            file: null,
+            preview: url,
+          })),
+          logos: (group.logos || []).map((url: string) => ({
+            file: null,
+            preview: url,
+          })),
+        }));
+        setAssetGroups(loadedGroups);
+      }
+    }
+  }, [existingAdProof]);
 
   // Fetch campaign and client data
   const { data: campaignData } = useQuery({
@@ -326,10 +374,11 @@ const PerformanceMaxBuilder = () => {
     toast.success("Campaign data exported");
   };
 
-  const createAdProof = useMutation({
+  const saveAdProof = useMutation({
     mutationFn: async () => {
-      console.log("=== CREATE AD PROOF STARTED ===");
+      console.log("=== SAVE AD PROOF STARTED ===");
       console.log("Campaign ID:", campaignId);
+      console.log("Ad Proof ID:", adProofId);
       console.log("Asset Groups:", assetGroups);
       
       if (!campaignId) throw new Error("Missing campaign information");
@@ -361,14 +410,23 @@ const PerformanceMaxBuilder = () => {
       
       console.log("Validation passed, proceeding with upload...");
 
-      const shareToken = Math.random().toString(36).substring(2, 14);
+      // Use existing share token if editing, otherwise generate new one
+      const shareToken = adProofId && existingAdProof?.adProof?.share_token 
+        ? existingAdProof.adProof.share_token 
+        : Math.random().toString(36).substring(2, 14);
 
-      // Upload all images
+      // Upload all images (only upload new files, keep existing URLs)
       const uploadedAssetGroups = await Promise.all(
-        assetGroups.map(async (group) => {
+        assetGroups.map(async (group, groupIdx) => {
           const uploadImage = async (image: ImageAsset, path: string) => {
+            // If no file but has preview URL, it's an existing image - keep the URL
+            if (!image.file && image.preview) return image.preview;
+            // If no file at all, return empty string
             if (!image.file) return "";
-            const { error } = await supabase.storage.from("ad-media").upload(path, image.file);
+            
+            const { error } = await supabase.storage.from("ad-media").upload(path, image.file, {
+              upsert: true, // Overwrite if exists
+            });
             if (error) throw error;
             const {
               data: { publicUrl },
@@ -405,35 +463,74 @@ const PerformanceMaxBuilder = () => {
         })
       );
 
-      // Create ad proof
-      const { data: adProof, error: adProofError } = await supabase
-        .from("ad_proofs")
-        .insert({
-          campaign_id: campaignId,
-          platform: "google_pmax",
-          ad_format: "pmax",
-          share_token: shareToken,
-          status: "pending",
-        })
-        .select()
-        .single();
+      let adProofIdToUse = adProofId;
 
-      if (adProofError) throw adProofError;
+      if (adProofId) {
+        // Update existing ad proof
+        const { error: updateError } = await supabase
+          .from("ad_proofs")
+          .update({
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", adProofId);
 
-      // Create first version with asset group data
-      const { error: versionError } = await supabase.from("ad_proof_versions").insert({
-        ad_proof_id: adProof.id,
-        version_number: 1,
-        ad_data: { assetGroups: uploadedAssetGroups },
-      });
+        if (updateError) throw updateError;
 
-      if (versionError) throw versionError;
+        // Get current version number
+        const currentVersion = existingAdProof?.adProof?.current_version || 1;
+        const newVersion = currentVersion + 1;
 
-      return adProof;
+        // Create new version
+        const { error: versionError } = await supabase.from("ad_proof_versions").insert({
+          ad_proof_id: adProofId,
+          version_number: newVersion,
+          ad_data: { assetGroups: uploadedAssetGroups },
+        });
+
+        if (versionError) throw versionError;
+
+        // Update current version
+        const { error: updateVersionError } = await supabase
+          .from("ad_proofs")
+          .update({ current_version: newVersion })
+          .eq("id", adProofId);
+
+        if (updateVersionError) throw updateVersionError;
+      } else {
+        // Create new ad proof
+        const { data: adProof, error: adProofError } = await supabase
+          .from("ad_proofs")
+          .insert({
+            campaign_id: campaignId,
+            platform: "google_pmax",
+            ad_format: "pmax",
+            share_token: shareToken,
+            status: "pending",
+          })
+          .select()
+          .single();
+
+        if (adProofError) throw adProofError;
+
+        // Create first version with asset group data
+        const { error: versionError } = await supabase.from("ad_proof_versions").insert({
+          ad_proof_id: adProof.id,
+          version_number: 1,
+          ad_data: { assetGroups: uploadedAssetGroups },
+        });
+
+        if (versionError) throw versionError;
+
+        adProofIdToUse = adProof.id;
+      }
+
+      return adProofIdToUse;
     },
-    onSuccess: (data) => {
-      toast.success("Performance Max campaign created successfully!");
+    onSuccess: (savedAdProofId) => {
+      toast.success(adProofId ? "Changes saved successfully!" : "Performance Max campaign created successfully!");
       queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+      queryClient.invalidateQueries({ queryKey: ["ad-proofs", campaignId] });
+      queryClient.invalidateQueries({ queryKey: ["ad-proof", adProofId] });
       navigate(`/campaign/${campaignId}`);
     },
     onError: (error: Error) => {
@@ -465,8 +562,8 @@ const PerformanceMaxBuilder = () => {
                 <Download className="mr-2 h-4 w-4" />
                 Export JSON
               </Button>
-              <Button onClick={() => createAdProof.mutate()} disabled={createAdProof.isPending}>
-                {createAdProof.isPending ? "Saving..." : "Create Campaign"}
+              <Button onClick={() => saveAdProof.mutate()} disabled={saveAdProof.isPending}>
+                {saveAdProof.isPending ? "Saving..." : adProofId ? "Save Changes" : "Create Campaign"}
               </Button>
             </div>
           </div>
