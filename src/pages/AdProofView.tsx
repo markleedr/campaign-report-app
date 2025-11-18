@@ -175,16 +175,15 @@ const AdProofView = () => {
   };
 
   const keysToRender = useMemo(() => {
-    // Define the fields we want to show in a specific order
-    // Exclude clientName, clientLogoUrl, url - these are auto-populated
+    // Define the fields in the order they appear in the ad preview
     const orderedFields = [
-      "headline",
-      "primaryText",
-      "description",
-      "callToAction",
-      "imageUrl",
-      "displayUrl",
-      "destinationUrl",
+      "primaryText",      // Appears at top before image
+      "imageUrl",         // The ad image
+      "displayUrl",       // Shown in content card
+      "headline",         // Main headline in content card
+      "description",      // Description text in content card
+      "callToAction",     // CTA button in content card
+      "destinationUrl",   // Click-through URL (not visible in preview)
     ];
     
     // Only show fields that exist in adData or are in the ordered list
