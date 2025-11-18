@@ -39,7 +39,7 @@ const AdProofView = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ad_proofs")
-        .select("*")
+        .select("*, campaigns(*, clients(name, logo_url))")
         .eq("id", adProofId)
         .single();
       if (error) throw error;
@@ -155,6 +155,10 @@ const AdProofView = () => {
       );
     }
 
+    // Get client data from campaign
+    const clientName = (adProof as any)?.campaigns?.clients?.name || "Your Brand";
+    const clientLogoUrl = (adProof as any)?.campaigns?.clients?.logo_url || "";
+
     // Map generic adData keys to preview props
     const props: any = {
       primaryText: adData.primaryText,
@@ -162,27 +166,31 @@ const AdProofView = () => {
       description: adData.description,
       callToAction: adData.callToAction,
       imageUrl: adData.imageUrl,
-      clientName: adData.clientName,
-      clientLogoUrl: adData.clientLogoUrl,
+      linkUrl: adData.displayUrl,
+      clientName,
+      clientLogoUrl,
     };
 
     return <Preview {...props} />;
   };
 
   const keysToRender = useMemo(() => {
-    // Prefer a stable order for common ad fields; append others
-    const common = [
+    // Define the fields we want to show in a specific order
+    // Exclude clientName, clientLogoUrl, url - these are auto-populated
+    const orderedFields = [
       "headline",
       "primaryText",
       "description",
       "callToAction",
       "imageUrl",
-      "clientName",
-      "clientLogoUrl",
-      "url",
+      "displayUrl",
+      "destinationUrl",
     ];
-    const others = Object.keys(adData).filter((k) => !common.includes(k));
-    return [...common, ...others];
+    
+    // Only show fields that exist in adData or are in the ordered list
+    return orderedFields.filter(field => 
+      adData[field] !== undefined || orderedFields.includes(field)
+    );
   }, [adData]);
 
   const isLoading = loadingProof || loadingVersion;
@@ -284,6 +292,35 @@ const AdProofView = () => {
                             </div>
                           )}
                         </div>
+                      </div>
+                    );
+                  }
+
+                  // Special handling for displayUrl and destinationUrl
+                  if (key === "displayUrl") {
+                    return (
+                      <div className="space-y-2" key={key}>
+                        <Label htmlFor={key}>Display URL</Label>
+                        <Input
+                          id={key}
+                          value={adData[key] ?? ""}
+                          onChange={(e) => handleChange(key, e.target.value)}
+                          placeholder="e.g., stockwell.com.au/shop"
+                        />
+                      </div>
+                    );
+                  }
+
+                  if (key === "destinationUrl") {
+                    return (
+                      <div className="space-y-2" key={key}>
+                        <Label htmlFor={key}>Destination URL</Label>
+                        <Input
+                          id={key}
+                          value={adData[key] ?? ""}
+                          onChange={(e) => handleChange(key, e.target.value)}
+                          placeholder="https://stockwell.com.au/shop"
+                        />
                       </div>
                     );
                   }
