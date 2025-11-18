@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Upload, Plus, Trash2, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +42,7 @@ const PerformanceMaxBuilder = () => {
   const campaignId = searchParams.get("campaignId");
   const adProofId = searchParams.get("adProofId");
   const queryClient = useQueryClient();
+  const [adName, setAdName] = useState("");
 
   const ctaOptions = [
     "Learn More",
@@ -143,6 +144,9 @@ const PerformanceMaxBuilder = () => {
           })),
         }));
         setAssetGroups(loadedGroups);
+      }
+      if (adData.name) {
+        setAdName(adData.name);
       }
     }
   }, [existingAdProof]);
@@ -471,6 +475,7 @@ const PerformanceMaxBuilder = () => {
           .from("ad_proofs")
           .update({
             updated_at: new Date().toISOString(),
+            name: adName || null,
           })
           .eq("id", adProofId);
 
@@ -484,7 +489,7 @@ const PerformanceMaxBuilder = () => {
         const { error: versionError } = await supabase.from("ad_proof_versions").insert({
           ad_proof_id: adProofId,
           version_number: newVersion,
-          ad_data: { assetGroups: uploadedAssetGroups },
+          ad_data: { name: adName, assetGroups: uploadedAssetGroups },
         });
 
         if (versionError) throw versionError;
@@ -506,6 +511,7 @@ const PerformanceMaxBuilder = () => {
             ad_format: "pmax",
             share_token: shareToken,
             status: "pending",
+            name: adName || null,
           })
           .select()
           .single();
@@ -516,7 +522,7 @@ const PerformanceMaxBuilder = () => {
         const { error: versionError } = await supabase.from("ad_proof_versions").insert({
           ad_proof_id: adProof.id,
           version_number: 1,
-          ad_data: { assetGroups: uploadedAssetGroups },
+          ad_data: { name: adName, assetGroups: uploadedAssetGroups },
         });
 
         if (versionError) throw versionError;
@@ -568,6 +574,21 @@ const PerformanceMaxBuilder = () => {
             </div>
           </div>
         </div>
+
+        {/* Ad Name */}
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="space-y-2">
+              <Label htmlFor="adName">Ad Name (Optional)</Label>
+              <Input
+                id="adName"
+                value={adName}
+                onChange={(e) => setAdName(e.target.value)}
+                placeholder="Enter a name for this ad"
+              />
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Asset Group Tabs */}
         <div className="mb-6 flex items-center gap-2 overflow-x-auto">

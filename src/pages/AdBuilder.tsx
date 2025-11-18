@@ -46,6 +46,7 @@ const AdBuilder = () => {
   };
 
   const [adData, setAdData] = useState({
+    name: "",
     headline: "",
     primaryText: "",
     description: "",
@@ -119,6 +120,7 @@ const AdBuilder = () => {
           ad_format: format,
           share_token: shareToken,
           status: "pending",
+          name: adData.name || null,
         })
         .select()
         .single();
@@ -189,6 +191,20 @@ const AdBuilder = () => {
           <div className="space-y-6">
             <Card className="p-6">
               <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">
+                    Ad Name (Optional)
+                  </Label>
+                  <Input
+                    id="name"
+                    value={adData.name}
+                    onChange={(e) =>
+                      setAdData({ ...adData, name: e.target.value })
+                    }
+                    placeholder="Enter a name for this ad"
+                  />
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="headline">
                     Headline * ({adData.headline.length}/{getCharacterLimit("headline")})

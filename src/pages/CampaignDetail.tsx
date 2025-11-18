@@ -228,10 +228,10 @@ const CampaignDetail = () => {
                   >
                     <div className="flex-1">
                       <p className="text-sm sm:text-base font-medium">
-                        {proof.platform} - {proof.ad_format}
+                        {proof.name || `${proof.platform} - ${proof.ad_format}`}
                       </p>
                       <p className="text-xs sm:text-sm text-muted-foreground">
-                        Version {proof.current_version} • {proof.status}
+                        Version {proof.current_version}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2 w-full sm:w-auto">

@@ -39,6 +39,7 @@ const CarouselBuilder = () => {
   const isEditMode = !!adProofId;
 
   const [adData, setAdData] = useState({
+    name: "",
     primaryText: "",
     linkUrl: "",
     callToAction: "Learn More",
@@ -101,6 +102,7 @@ const CarouselBuilder = () => {
     if (existingVersion?.ad_data) {
       const data = existingVersion.ad_data as any;
       setAdData({
+        name: data.name || "",
         primaryText: data.primaryText || "",
         linkUrl: data.linkUrl || "",
         callToAction: data.callToAction || "Learn More",
@@ -212,6 +214,7 @@ const CarouselBuilder = () => {
           .update({
             current_version: nextVersionNumber,
             updated_at: new Date().toISOString(),
+            name: adData.name || null,
           })
           .eq("id", adProofId);
 
@@ -222,6 +225,7 @@ const CarouselBuilder = () => {
           ad_proof_id: adProofId,
           version_number: nextVersionNumber,
           ad_data: {
+            name: adData.name,
             primaryText: adData.primaryText,
             linkUrl: adData.linkUrl,
             callToAction: adData.callToAction,
@@ -242,6 +246,7 @@ const CarouselBuilder = () => {
             ad_format: "carousel",
             share_token: shareToken,
             status: "pending",
+            name: adData.name || null,
           })
           .select()
           .single();
@@ -253,6 +258,7 @@ const CarouselBuilder = () => {
           ad_proof_id: adProof.id,
           version_number: 1,
           ad_data: {
+            name: adData.name,
             primaryText: adData.primaryText,
             linkUrl: adData.linkUrl,
             callToAction: adData.callToAction,

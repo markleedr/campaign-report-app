@@ -53,6 +53,7 @@ export type Database = {
           created_at: string
           current_version: number
           id: string
+          name: string | null
           platform: string
           share_token: string
           status: string
@@ -64,6 +65,7 @@ export type Database = {
           created_at?: string
           current_version?: number
           id?: string
+          name?: string | null
           platform: string
           share_token: string
           status?: string
@@ -75,6 +77,7 @@ export type Database = {
           created_at?: string
           current_version?: number
           id?: string
+          name?: string | null
           platform?: string
           share_token?: string
           status?: string
