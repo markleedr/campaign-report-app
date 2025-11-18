@@ -328,20 +328,38 @@ const PerformanceMaxBuilder = () => {
 
   const createAdProof = useMutation({
     mutationFn: async () => {
+      console.log("=== CREATE AD PROOF STARTED ===");
+      console.log("Campaign ID:", campaignId);
+      console.log("Asset Groups:", assetGroups);
+      
       if (!campaignId) throw new Error("Missing campaign information");
 
       // Validate all asset groups
       const allErrors: string[] = [];
       assetGroups.forEach((group, index) => {
+        console.log(`Validating Asset Group ${index + 1}:`, {
+          name: group.name,
+          landscapeCount: group.landscapeImages.length,
+          squareCount: group.squareImages.length,
+          logosCount: group.logos.length,
+          landscapeImages: group.landscapeImages,
+          squareImages: group.squareImages,
+          logos: group.logos,
+        });
+        
         const errors = validateAssetGroup(group);
         if (errors.length > 0) {
+          console.log(`Errors for group ${index + 1}:`, errors);
           allErrors.push(`Asset Group ${index + 1}: ${errors.join(", ")}`);
         }
       });
 
       if (allErrors.length > 0) {
+        console.error("Validation failed:", allErrors);
         throw new Error(`Validation failed:\n${allErrors.join("\n")}`);
       }
+      
+      console.log("Validation passed, proceeding with upload...");
 
       const shareToken = Math.random().toString(36).substring(2, 14);
 
