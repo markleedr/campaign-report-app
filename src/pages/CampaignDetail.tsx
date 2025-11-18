@@ -227,8 +227,13 @@ const CampaignDetail = () => {
                     className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-3"
                   >
                     <div className="flex-1">
-                      <p className="text-sm sm:text-base font-medium">
-                        {proof.name || `${proof.platform} - ${proof.ad_format}`}
+                      {proof.name && (
+                        <p className="text-sm sm:text-base font-medium">
+                          {proof.name}
+                        </p>
+                      )}
+                      <p className={`text-xs sm:text-sm ${proof.name ? 'text-muted-foreground' : 'text-sm sm:text-base font-medium'}`}>
+                        {proof.platform} - {proof.ad_format}
                       </p>
                       <p className="text-xs sm:text-sm text-muted-foreground">
                         Version {proof.current_version}
