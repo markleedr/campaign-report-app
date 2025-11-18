@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { useParams, useNavigate, useBlocker } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ArrowLeft, Save, Upload } from "lucide-react";
 import { toast } from "sonner";
 
@@ -66,12 +67,10 @@ const AdProofView = () => {
 
   const [adData, setAdData] = useState<AdData>({});
   const [uploading, setUploading] = useState(false);
-
-  useEffect(() => {
-    if (latestVersion?.ad_data) {
-      setAdData(latestVersion.ad_data as AdData);
-    }
-  }, [latestVersion]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout>();
+  const initialDataRef = useRef<string>("");
 
   const handleChange = (key: string, value: string) => {
     setAdData((prev) => ({ ...prev, [key]: value }));
@@ -127,11 +126,64 @@ const AdProofView = () => {
     },
     onSuccess: () => {
       toast.success("Saved new version");
+      initialDataRef.current = JSON.stringify(adData);
+      setHasUnsavedChanges(false);
       queryClient.invalidateQueries({ queryKey: ["ad-proof", adProofId] });
       queryClient.invalidateQueries({ queryKey: ["ad-proof-latest-version", adProofId] });
     },
     onError: () => toast.error("Failed to save changes"),
   });
+
+  useEffect(() => {
+    if (latestVersion?.ad_data) {
+      setAdData(latestVersion.ad_data as AdData);
+      initialDataRef.current = JSON.stringify(latestVersion.ad_data);
+      setHasUnsavedChanges(false);
+    }
+  }, [latestVersion]);
+
+  // Track unsaved changes
+  useEffect(() => {
+    if (initialDataRef.current) {
+      const currentData = JSON.stringify(adData);
+      setHasUnsavedChanges(currentData !== initialDataRef.current);
+    }
+  }, [adData]);
+
+  // Auto-save every 3 minutes
+  useEffect(() => {
+    if (hasUnsavedChanges && !saveMutation.isPending) {
+      autoSaveTimerRef.current = setTimeout(() => {
+        saveMutation.mutate();
+        toast.info("Auto-saved");
+      }, 180000); // 3 minutes
+    }
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [hasUnsavedChanges, saveMutation]);
+
+  // Browser navigation warning
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  // In-app navigation blocking
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      hasUnsavedChanges && currentLocation.pathname !== nextLocation.pathname
+  );
 
   const Preview = useMemo(() => {
     if (!adProof) return null;
@@ -196,9 +248,62 @@ const AdProofView = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <AlertDialog open={blocker.state === "blocked" || showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes. Do you want to save them before leaving?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              if (blocker.state === "blocked") {
+                blocker.reset();
+              }
+              setShowUnsavedDialog(false);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (blocker.state === "blocked") {
+                  blocker.proceed();
+                } else {
+                  navigate(-1);
+                }
+                setShowUnsavedDialog(false);
+              }}
+            >
+              Leave Without Saving
+            </Button>
+            <AlertDialogAction
+              onClick={async () => {
+                await saveMutation.mutateAsync();
+                if (blocker.state === "blocked") {
+                  blocker.proceed();
+                } else {
+                  navigate(-1);
+                }
+                setShowUnsavedDialog(false);
+              }}
+            >
+              Save & Leave
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <header className="border-b bg-background">
         <div className="mx-auto max-w-7xl px-6 py-6 flex items-center gap-3">
-          <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
+          <Button variant="outline" size="sm" onClick={() => {
+            if (hasUnsavedChanges) {
+              setShowUnsavedDialog(true);
+            } else {
+              navigate(-1);
+            }
+          }}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
           <div>
@@ -207,8 +312,11 @@ const AdProofView = () => {
               {adProof ? `${adProof.platform} • ${adProof.ad_format} • v${adProof.current_version}` : "Loading..."}
             </p>
           </div>
-          <div className="ml-auto">
-            <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || isLoading}>
+          <div className="ml-auto flex items-center gap-2">
+            {hasUnsavedChanges && (
+              <span className="text-sm text-muted-foreground">Unsaved changes</span>
+            )}
+            <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || isLoading || !hasUnsavedChanges}>
               <Save className="mr-2 h-4 w-4" /> {saveMutation.isPending ? "Saving..." : "Save as New Version"}
             </Button>
           </div>
