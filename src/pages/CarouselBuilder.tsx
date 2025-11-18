@@ -26,6 +26,7 @@ interface CarouselCardData {
   imagePreview: string;
   headline: string;
   description: string;
+  url: string;
 }
 
 const CarouselBuilder = () => {
@@ -44,9 +45,9 @@ const CarouselBuilder = () => {
   });
 
   const [cards, setCards] = useState<CarouselCardData[]>([
-    { imageFile: null, imagePreview: "", headline: "", description: "" },
-    { imageFile: null, imagePreview: "", headline: "", description: "" },
-    { imageFile: null, imagePreview: "", headline: "", description: "" },
+    { imageFile: null, imagePreview: "", headline: "", description: "", url: "" },
+    { imageFile: null, imagePreview: "", headline: "", description: "", url: "" },
+    { imageFile: null, imagePreview: "", headline: "", description: "", url: "" },
   ]);
 
   // Fetch campaign and client data
@@ -111,6 +112,7 @@ const CarouselBuilder = () => {
             imagePreview: card.imageUrl || "",
             headline: card.headline || "",
             description: card.description || "",
+            url: card.url || "",
           }))
         );
       }
@@ -142,7 +144,7 @@ const CarouselBuilder = () => {
 
   const addCard = () => {
     if (cards.length < 10) {
-      setCards([...cards, { imageFile: null, imagePreview: "", headline: "", description: "" }]);
+      setCards([...cards, { imageFile: null, imagePreview: "", headline: "", description: "", url: "" }]);
     }
   };
 
@@ -468,6 +470,18 @@ const CarouselBuilder = () => {
                           }
                           placeholder="Enter description"
                           rows={2}
+                        />
+                      </div>
+
+                      {/* Card URL */}
+                      <div className="space-y-2">
+                        <Label htmlFor={`card-url-${index}`}>Website URL *</Label>
+                        <Input
+                          id={`card-url-${index}`}
+                          value={card.url}
+                          onChange={(e) => updateCardField(index, "url", e.target.value)}
+                          placeholder="www.example.com"
+                          type="url"
                         />
                       </div>
                     </Card>
