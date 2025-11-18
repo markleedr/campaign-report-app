@@ -66,9 +66,9 @@ export const LinkedInCarouselPreview = ({
       {/* Carousel Card */}
       <div className="relative group">
         {card.imageUrl ? (
-          <img src={card.imageUrl} alt={card.headline} className="w-full aspect-video object-cover" />
+          <img src={card.imageUrl} alt={card.headline} className="w-full aspect-square object-cover" />
         ) : (
-          <div className="w-full aspect-video bg-muted flex items-center justify-center">
+          <div className="w-full aspect-square bg-muted flex items-center justify-center">
             <span className="text-muted-foreground">Card {currentCard + 1} Image</span>
           </div>
         )}
