@@ -17,6 +17,7 @@ import { InstagramStoryPreview } from "@/components/ad-previews/InstagramStoryPr
 import { InstagramCarouselPreview } from "@/components/ad-previews/InstagramCarouselPreview";
 import { LinkedInSingleImagePreview } from "@/components/ad-previews/LinkedInSingleImagePreview";
 import { LinkedInCarouselPreview } from "@/components/ad-previews/LinkedInCarouselPreview";
+import { GooglePerformanceMaxPreview } from "@/components/ad-previews/GooglePerformanceMaxPreview";
 
 const ProofView = () => {
   const { shareToken } = useParams();
@@ -156,9 +157,17 @@ const ProofView = () => {
           clientLogoUrl={client?.logo_url}
         />;
       }
+    } else if (platform === "google_pmax" || platform === "google-pmax") {
+      if (format === "pmax") {
+        return <GooglePerformanceMaxPreview 
+          assetGroups={adData.assetGroups}
+          clientName={client?.name}
+          clientLogoUrl={client?.logo_url}
+        />;
+      }
     }
 
-    return <div className="text-muted-foreground">Preview not available for this ad type</div>;
+    return <div className="text-muted-foreground p-8 text-center">Preview not available for this ad type: {platform} - {format}</div>;
   };
 
   return (
