@@ -27,6 +27,8 @@ export const LinkedInCarouselPreview = ({
   clientLogoUrl,
 }: LinkedInCarouselPreviewProps) => {
   const [currentCard, setCurrentCard] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
   const nextCard = () => {
     setCurrentCard((prev) => (prev + 1) % cards.length);
@@ -34,6 +36,28 @@ export const LinkedInCarouselPreview = ({
 
   const prevCard = () => {
     setCurrentCard((prev) => (prev - 1 + cards.length) % cards.length);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && currentCard < cards.length - 1) {
+      nextCard();
+    }
+    if (isRightSwipe && currentCard > 0) {
+      prevCard();
+    }
   };
 
   const card = cards[currentCard];
@@ -64,7 +88,12 @@ export const LinkedInCarouselPreview = ({
       )}
 
       {/* Carousel Card */}
-      <div className="relative group">
+      <div 
+        className="relative group"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         {card.imageUrl ? (
           <img src={card.imageUrl} alt={card.headline} className="w-full aspect-square object-cover" />
         ) : (

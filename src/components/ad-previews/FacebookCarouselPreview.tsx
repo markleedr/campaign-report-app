@@ -27,6 +27,8 @@ export const FacebookCarouselPreview = ({
   clientLogoUrl,
 }: FacebookCarouselPreviewProps) => {
   const [currentCard, setCurrentCard] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
   const nextCard = () => {
     setCurrentCard((prev) => (prev + 1) % cards.length);
@@ -34,6 +36,28 @@ export const FacebookCarouselPreview = ({
 
   const prevCard = () => {
     setCurrentCard((prev) => (prev - 1 + cards.length) % cards.length);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && currentCard < cards.length - 1) {
+      nextCard();
+    }
+    if (isRightSwipe && currentCard > 0) {
+      prevCard();
+    }
   };
 
   const card = cards[currentCard];
@@ -65,7 +89,12 @@ export const FacebookCarouselPreview = ({
 
       {/* Carousel Container - Side by side cards */}
       <div className="relative bg-background">
-        <div className="flex gap-2 p-2 overflow-x-auto scrollbar-hide">
+        <div 
+          className="flex gap-2 p-2 overflow-x-auto scrollbar-hide"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           {cards.map((cardItem, idx) => (
             <div 
               key={idx} 
