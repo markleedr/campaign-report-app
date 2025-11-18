@@ -500,9 +500,9 @@ const CarouselBuilder = () => {
 
           {/* Right Panel - Live Preview */}
           <div className="space-y-6">
-            <Card className="p-6">
+            <Card className="p-6 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-auto">
               <h3 className="mb-4 font-semibold">Live Preview</h3>
-              <div className="flex justify-center">
+              <div className="flex justify-center scale-90 origin-top">
                 {platform === "facebook" && (
                   <FacebookCarouselPreview
                     primaryText={adData.primaryText}
