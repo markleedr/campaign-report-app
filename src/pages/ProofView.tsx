@@ -183,9 +183,23 @@ const ProofView = () => {
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold">{client?.name} - {campaign?.name}</h2>
-            <p className="text-sm text-muted-foreground">
-              Version {selectedVersion} {selectedVersion === adProof.current_version && "(Current)"}
-            </p>
+            <div className="flex items-center gap-3 mt-1">
+              <p className="text-sm text-muted-foreground">
+                {adProof.platform === "facebook" && "Facebook"}
+                {adProof.platform === "instagram" && "Instagram"}
+                {adProof.platform === "linkedin" && "LinkedIn"}
+                {(adProof.platform === "google_pmax" || adProof.platform === "google-pmax") && "Google Performance Max"}
+                {" • "}
+                {(adProof.ad_format === "single_image" || adProof.ad_format === "single-image") && "Single Image"}
+                {adProof.ad_format === "story" && "Story"}
+                {adProof.ad_format === "carousel" && "Carousel"}
+                {adProof.ad_format === "pmax" && "Performance Max"}
+              </p>
+              <span className="text-muted-foreground">•</span>
+              <p className="text-sm text-muted-foreground">
+                Version {selectedVersion} {selectedVersion === adProof.current_version && "(Current)"}
+              </p>
+            </div>
           </div>
           
           {versions && versions.length > 1 && (
