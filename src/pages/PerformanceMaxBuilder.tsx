@@ -111,7 +111,8 @@ const PerformanceMaxBuilder = () => {
 
     const maxLimits = { landscape: 20, square: 20, portrait: 20, logos: 5 };
     const newGroups = [...assetGroups];
-    const currentImages = newGroups[groupIndex][`${type}Images`];
+    const imageKey = type === "logos" ? "logos" : `${type}Images`;
+    const currentImages = newGroups[groupIndex][imageKey];
 
     const remainingSlots = maxLimits[type] - currentImages.length;
     const filesToAdd = Array.from(files).slice(0, remainingSlots);
@@ -124,7 +125,7 @@ const PerformanceMaxBuilder = () => {
       };
     });
 
-    newGroups[groupIndex][`${type}Images`] = [...currentImages, ...newAssets];
+    newGroups[groupIndex][imageKey] = [...currentImages, ...newAssets];
     setAssetGroups(newGroups);
   };
 
@@ -134,7 +135,8 @@ const PerformanceMaxBuilder = () => {
     imageIndex: number
   ) => {
     const newGroups = [...assetGroups];
-    newGroups[groupIndex][`${type}Images`].splice(imageIndex, 1);
+    const imageKey = type === "logos" ? "logos" : `${type}Images`;
+    newGroups[groupIndex][imageKey].splice(imageIndex, 1);
     setAssetGroups(newGroups);
   };
 
