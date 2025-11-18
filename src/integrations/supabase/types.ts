@@ -246,6 +246,25 @@ export type Database = {
     }
     Functions: {
       generate_campaign_share_token: { Args: never; Returns: string }
+      get_approvals_by_share_token: {
+        Args: { p_share_token: string }
+        Returns: {
+          ad_proof_id: string
+          approver_email: string | null
+          approver_name: string
+          comment: string
+          created_at: string
+          decision: string
+          id: string
+          version_number: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "approvals"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       [_ in never]: never
