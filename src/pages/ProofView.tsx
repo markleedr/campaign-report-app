@@ -72,7 +72,7 @@ const ProofView = () => {
     const format = adProof.ad_format;
 
     if (platform === "facebook") {
-      if (format === "single_image") {
+      if (format === "single_image" || format === "single-image") {
         return <FacebookSingleImagePreview 
           primaryText={adData.primaryText}
           imageUrl={adData.imageUrl}
@@ -99,7 +99,7 @@ const ProofView = () => {
         />;
       }
     } else if (platform === "instagram") {
-      if (format === "single_image") {
+      if (format === "single_image" || format === "single-image") {
         return <InstagramSingleImagePreview 
           primaryText={adData.primaryText}
           imageUrl={adData.imageUrl}
@@ -125,7 +125,7 @@ const ProofView = () => {
         />;
       }
     } else if (platform === "linkedin") {
-      if (format === "single_image") {
+      if (format === "single_image" || format === "single-image") {
         return <LinkedInSingleImagePreview 
           primaryText={adData.primaryText}
           imageUrl={adData.imageUrl}
