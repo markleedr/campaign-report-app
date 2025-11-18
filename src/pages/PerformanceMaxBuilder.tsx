@@ -59,9 +59,9 @@ const PerformanceMaxBuilder = () => {
       name: "",
       finalUrl: "",
       mobileUrl: "",
-      headlines: ["", "", "", "", ""],
+      headlines: [""],
       longHeadline: "",
-      descriptions: ["", "", "", ""],
+      descriptions: [""],
       businessName: "",
       landscapeImages: [],
       squareImages: [],
@@ -134,9 +134,9 @@ const PerformanceMaxBuilder = () => {
         name: "",
         finalUrl: "",
         mobileUrl: "",
-        headlines: ["", "", "", "", ""],
+        headlines: [""],
         longHeadline: "",
-        descriptions: ["", "", "", ""],
+        descriptions: [""],
         businessName: "",
         landscapeImages: [],
         squareImages: [],
@@ -203,10 +203,10 @@ const PerformanceMaxBuilder = () => {
     if (group.logos.length === 0) errors.push("At least 1 logo required");
 
     const filledHeadlines = group.headlines.filter((h) => h.trim()).length;
-    if (filledHeadlines < 5) errors.push(`Only ${filledHeadlines}/5 headlines provided`);
+    if (filledHeadlines < 1) errors.push("At least 1 headline required");
 
     const filledDescriptions = group.descriptions.filter((d) => d.trim()).length;
-    if (filledDescriptions < 4) errors.push(`Only ${filledDescriptions}/4 descriptions provided`);
+    if (filledDescriptions < 1) errors.push("At least 1 description required");
 
     return errors;
   };
@@ -217,9 +217,9 @@ const PerformanceMaxBuilder = () => {
       finalUrl: group.finalUrl,
       mobileUrl: group.mobileUrl,
       textAssets: {
-        headlines: group.headlines,
+        headlines: group.headlines.filter((h) => h.trim()),
         longHeadline: group.longHeadline,
-        descriptions: group.descriptions,
+        descriptions: group.descriptions.filter((d) => d.trim()),
         businessName: group.businessName,
       },
       images: {
@@ -446,7 +446,7 @@ const PerformanceMaxBuilder = () => {
 
                 <div>
                   <Label>
-                    Headlines <span className="text-destructive">* (5 required)</span>
+                    Headlines <span className="text-destructive">*</span> (up to 5)
                   </Label>
                   <div className="space-y-2 mt-2">
                     {activeGroup.headlines.map((headline, idx) => (
@@ -456,6 +456,12 @@ const PerformanceMaxBuilder = () => {
                           onChange={(e) => {
                             const value = e.target.value.slice(0, 30);
                             updateArrayField(activeGroupIndex, "headlines", idx, value);
+                            // Add next field if current is filled and under limit
+                            if (value.trim() && idx === activeGroup.headlines.length - 1 && activeGroup.headlines.length < 5) {
+                              const newGroups = [...assetGroups];
+                              newGroups[activeGroupIndex].headlines.push("");
+                              setAssetGroups(newGroups);
+                            }
                           }}
                           placeholder={`Headline ${idx + 1}`}
                           maxLength={30}
@@ -486,7 +492,7 @@ const PerformanceMaxBuilder = () => {
 
                 <div>
                   <Label>
-                    Descriptions <span className="text-destructive">* (4 required)</span>
+                    Descriptions <span className="text-destructive">*</span> (up to 4)
                   </Label>
                   <div className="space-y-2 mt-2">
                     {activeGroup.descriptions.map((description, idx) => (
@@ -496,6 +502,12 @@ const PerformanceMaxBuilder = () => {
                           onChange={(e) => {
                             const value = e.target.value.slice(0, 90);
                             updateArrayField(activeGroupIndex, "descriptions", idx, value);
+                            // Add next field if current is filled and under limit
+                            if (value.trim() && idx === activeGroup.descriptions.length - 1 && activeGroup.descriptions.length < 4) {
+                              const newGroups = [...assetGroups];
+                              newGroups[activeGroupIndex].descriptions.push("");
+                              setAssetGroups(newGroups);
+                            }
                           }}
                           placeholder={`Description ${idx + 1}`}
                           maxLength={90}
