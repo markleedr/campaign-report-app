@@ -17,25 +17,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Plus, Edit, Trash2, Share2, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ShareAdProofDialog } from "@/components/ShareAdProofDialog";
-
-const platforms = [
-  { value: "google-pmax", label: "Google Performance Max" },
-  { value: "facebook", label: "Facebook" },
-  { value: "instagram", label: "Instagram" },
-  { value: "linkedin", label: "LinkedIn" },
-  { value: "youtube", label: "YouTube" },
-];
 
 const CampaignDetail = () => {
   const { campaignId } = useParams();
@@ -44,7 +29,6 @@ const CampaignDetail = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [editName, setEditName] = useState("");
-  const [editPlatform, setEditPlatform] = useState("");
   const [selectedAdProofShareToken, setSelectedAdProofShareToken] = useState<string>("");
   const [adProofShareDialogOpen, setAdProofShareDialogOpen] = useState(false);
   const [deleteAdProofId, setDeleteAdProofId] = useState<string>("");
@@ -83,7 +67,6 @@ const CampaignDetail = () => {
         .from("campaigns")
         .update({
           name: editName,
-          platform: editPlatform,
         })
         .eq("id", campaignId);
 
@@ -141,14 +124,13 @@ const CampaignDetail = () => {
   const handleEdit = () => {
     if (campaign) {
       setEditName(campaign.name);
-      setEditPlatform(campaign.platform || "");
       setEditOpen(true);
     }
   };
 
   const handleSaveEdit = () => {
-    if (!editName.trim() || !editPlatform) {
-      toast.error("Please fill in all fields");
+    if (!editName.trim()) {
+      toast.error("Please fill in campaign name");
       return;
     }
     updateMutation.mutate();
@@ -176,8 +158,6 @@ const CampaignDetail = () => {
     );
   }
 
-  const platformLabel = platforms.find((p) => p.value === campaign.platform)?.label || campaign.platform;
-
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -197,7 +177,7 @@ const CampaignDetail = () => {
             <div>
               <h1 className="text-3xl font-bold text-foreground">{campaign.name}</h1>
               <p className="text-muted-foreground">
-                {campaign.clients?.name} • {platformLabel}
+                {campaign.clients?.name}
               </p>
             </div>
 
@@ -300,22 +280,6 @@ const CampaignDetail = () => {
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-platform">Platform *</Label>
-              <Select value={editPlatform} onValueChange={setEditPlatform}>
-                <SelectTrigger id="edit-platform">
-                  <SelectValue placeholder="Select platform" />
-                </SelectTrigger>
-                <SelectContent>
-                  {platforms.map((p) => (
-                    <SelectItem key={p.value} value={p.value}>
-                      {p.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="flex gap-3 pt-4">
