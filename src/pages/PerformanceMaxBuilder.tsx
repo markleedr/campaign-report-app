@@ -102,7 +102,7 @@ const PerformanceMaxBuilder = () => {
     enabled: !!campaignId,
   });
 
-  const handleImageUpload = (
+  const handleImageUpload = async (
     groupIndex: number,
     type: "landscape" | "square" | "portrait" | "logos",
     files: FileList | null
@@ -117,16 +117,51 @@ const PerformanceMaxBuilder = () => {
     const remainingSlots = maxLimits[type] - currentImages.length;
     const filesToAdd = Array.from(files).slice(0, remainingSlots);
 
-    const newAssets: ImageAsset[] = filesToAdd.map((file) => {
-      const reader = new FileReader();
-      return {
-        file,
-        preview: URL.createObjectURL(file),
-      };
-    });
+    const validatedAssets: ImageAsset[] = [];
+    const rejectedFiles: string[] = [];
 
-    newGroups[groupIndex][imageKey] = [...currentImages, ...newAssets];
-    setAssetGroups(newGroups);
+    for (const file of filesToAdd) {
+      try {
+        const dimensions = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve({ width: img.width, height: img.height });
+          img.onerror = reject;
+          img.src = URL.createObjectURL(file);
+        });
+
+        const aspectRatio = dimensions.width / dimensions.height;
+        let isValid = false;
+
+        if (type === "landscape") {
+          isValid = aspectRatio > 1.1;
+        } else if (type === "square" || type === "logos") {
+          isValid = aspectRatio >= 0.95 && aspectRatio <= 1.05;
+        } else if (type === "portrait") {
+          isValid = aspectRatio < 0.9;
+        }
+
+        if (isValid) {
+          validatedAssets.push({
+            file,
+            preview: URL.createObjectURL(file),
+          });
+        } else {
+          rejectedFiles.push(file.name);
+        }
+      } catch (error) {
+        rejectedFiles.push(file.name);
+      }
+    }
+
+    if (validatedAssets.length > 0) {
+      newGroups[groupIndex][imageKey] = [...currentImages, ...validatedAssets];
+      setAssetGroups(newGroups);
+    }
+
+    if (rejectedFiles.length > 0) {
+      const typeLabel = type === "logos" ? "square (1:1)" : type;
+      toast.error(`${rejectedFiles.length} image(s) rejected. Must be ${typeLabel} format.`);
+    }
   };
 
   const removeImage = (
