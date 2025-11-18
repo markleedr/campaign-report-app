@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from "react";
-import { useParams, useNavigate, useBlocker } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -181,11 +181,22 @@ const AdProofView = () => {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
-  // In-app navigation blocking
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      hasUnsavedChanges && currentLocation.pathname !== nextLocation.pathname
-  );
+  // Custom navigation blocking for unsaved changes
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (hasUnsavedChanges) {
+        const target = e.target as HTMLElement;
+        const link = target.closest('a[href]');
+        if (link && link.getAttribute('href')?.startsWith('/')) {
+          e.preventDefault();
+          setShowUnsavedDialog(true);
+        }
+      }
+    };
+
+    document.addEventListener('click', handleClick, true);
+    return () => document.removeEventListener('click', handleClick, true);
+  }, [hasUnsavedChanges]);
 
   const Preview = useMemo(() => {
     if (!adProof) return null;
@@ -250,7 +261,7 @@ const AdProofView = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <AlertDialog open={blocker.state === "blocked" || showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
+      <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
@@ -259,23 +270,15 @@ const AdProofView = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-              if (blocker.state === "blocked") {
-                blocker.reset();
-              }
-              setShowUnsavedDialog(false);
-            }}>
+            <AlertDialogCancel onClick={() => setShowUnsavedDialog(false)}>
               Cancel
             </AlertDialogCancel>
             <Button
               variant="outline"
               onClick={() => {
-                if (blocker.state === "blocked") {
-                  blocker.proceed();
-                } else {
-                  navigate(-1);
-                }
+                setHasUnsavedChanges(false);
                 setShowUnsavedDialog(false);
+                navigate(-1);
               }}
             >
               Leave Without Saving
@@ -283,12 +286,9 @@ const AdProofView = () => {
             <AlertDialogAction
               onClick={async () => {
                 await saveMutation.mutateAsync();
-                if (blocker.state === "blocked") {
-                  blocker.proceed();
-                } else {
-                  navigate(-1);
-                }
+                setHasUnsavedChanges(false);
                 setShowUnsavedDialog(false);
+                navigate(-1);
               }}
             >
               Save & Leave
