@@ -43,6 +43,10 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        {/* Version Number */}
+        <div className="fixed bottom-2 right-2 text-xs text-muted-foreground/30 pointer-events-none select-none">
+          v1.0
+        </div>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
