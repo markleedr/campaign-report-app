@@ -55,6 +55,8 @@ const AdBuilder = () => {
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [submitted, setSubmitted] = useState(false);
 
   // Fetch campaign and client data
   const { data: campaignData } = useQuery({
@@ -160,10 +162,17 @@ const AdBuilder = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!adData.headline || !adData.primaryText) {
-      toast.error("Please fill in required fields");
+    setSubmitted(true);
+
+    const missingFields = [];
+    if (!adData.headline.trim()) missingFields.push("Headline");
+    if (!adData.primaryText.trim()) missingFields.push("Primary Text");
+
+    if (missingFields.length > 0) {
+      toast.error(`Please fill in required fields: ${missingFields.join(", ")}`);
       return;
     }
+
     createAdProof.mutate();
   };
 
@@ -216,12 +225,18 @@ const AdBuilder = () => {
                   <Input
                     id="headline"
                     value={adData.headline}
-                    onChange={(e) =>
-                      setAdData({ ...adData, headline: e.target.value.slice(0, getCharacterLimit("headline")) })
-                    }
+                    onChange={(e) => {
+                      setAdData({ ...adData, headline: e.target.value.slice(0, getCharacterLimit("headline")) });
+                      setTouched({ ...touched, headline: true });
+                    }}
+                    onBlur={() => setTouched({ ...touched, headline: true })}
                     placeholder="Enter your headline"
                     required
+                    className={submitted && !adData.headline.trim() ? "border-red-500" : ""}
                   />
+                  {submitted && !adData.headline.trim() && (
+                    <p className="text-sm text-red-500">Headline is required</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -231,16 +246,22 @@ const AdBuilder = () => {
                   <Textarea
                     id="primaryText"
                     value={adData.primaryText}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       setAdData({
                         ...adData,
                         primaryText: e.target.value.slice(0, getCharacterLimit("primaryText")),
-                      })
-                    }
+                      });
+                      setTouched({ ...touched, primaryText: true });
+                    }}
+                    onBlur={() => setTouched({ ...touched, primaryText: true })}
                     placeholder="Enter your ad copy"
                     rows={4}
                     required
+                    className={submitted && !adData.primaryText.trim() ? "border-red-500" : ""}
                   />
+                  {submitted && !adData.primaryText.trim() && (
+                    <p className="text-sm text-red-500">Primary text is required</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">

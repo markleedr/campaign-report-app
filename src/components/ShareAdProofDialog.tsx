@@ -19,7 +19,7 @@ interface ShareAdProofDialogProps {
 
 export const ShareAdProofDialog = ({ open, onOpenChange, shareToken }: ShareAdProofDialogProps) => {
   const [copied, setCopied] = useState(false);
-  const shareUrl = `https://adproof.com.au/proof/${shareToken}`;
+  const shareUrl = `${window.location.origin}/proof/${shareToken}`;
 
   const handleCopy = async () => {
     try {

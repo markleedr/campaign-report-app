@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Send, Bookmark } from "lucide-react";
+import { Heart, MessageCircle, Send, Bookmark, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
 interface CarouselCard {
@@ -83,13 +83,13 @@ export const InstagramCarouselPreview = ({
       </div>
 
       {/* Carousel Image */}
-      <div 
-        className="relative overflow-hidden"
+      <div
+        className="relative overflow-hidden group"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div 
+        <div
           className="flex transition-transform duration-300 ease-out"
           style={{ transform: `translateX(-${currentCard * 100}%)` }}
         >
@@ -106,15 +106,32 @@ export const InstagramCarouselPreview = ({
           ))}
         </div>
 
+        {/* Navigation Arrows */}
+        {currentCard > 0 && (
+          <button
+            onClick={prevCard}
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/95 hover:bg-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+          >
+            <ChevronLeft className="w-5 h-5 text-gray-800" />
+          </button>
+        )}
+        {currentCard < cards.length - 1 && (
+          <button
+            onClick={nextCard}
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/95 hover:bg-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+          >
+            <ChevronRight className="w-5 h-5 text-gray-800" />
+          </button>
+        )}
+
         {/* Card Indicators */}
         <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
           {cards.map((_, idx) => (
             <button
               key={idx}
               onClick={() => setCurrentCard(idx)}
-              className={`w-1.5 h-1.5 rounded-full transition-all ${
-                idx === currentCard ? "bg-white scale-110" : "bg-white/50"
-              }`}
+              className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentCard ? "bg-white scale-110" : "bg-white/50"
+                }`}
             />
           ))}
         </div>

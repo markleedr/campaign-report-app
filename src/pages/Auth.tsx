@@ -67,9 +67,30 @@ const Auth = () => {
         });
       }
     } catch (error: any) {
+      console.error("Authentication error:", error);
+
+      let errorMessage = "An error occurred during authentication";
+      let errorTitle = "Authentication Failed";
+
+      // Check for network errors
+      if (error?.name === 'TypeError' && error?.message?.includes('fetch')) {
+        errorTitle = "Network Error";
+        errorMessage = "Unable to connect to authentication server. Please check your internet connection.";
+      }
+      // Handle Supabase errors - check multiple possible error properties
+      else if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.error_description) {
+        errorMessage = error.error_description;
+      } else if (error?.error) {
+        errorMessage = error.error;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+
       toast({
-        title: "Error",
-        description: error.message || "An error occurred",
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

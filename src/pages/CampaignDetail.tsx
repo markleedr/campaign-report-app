@@ -240,8 +240,15 @@ const CampaignDetail = () => {
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(`/proof/${proof.share_token}`, '_blank')}
+                      >
+                        <span className="text-xs">view</span>
+                      </Button>
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => {
                           setSelectedAdProofShareToken(proof.share_token);
@@ -251,9 +258,9 @@ const CampaignDetail = () => {
                         <Share2 className="mr-1 h-3 w-3" />
                         <span className="text-xs">share</span>
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => {
                           if (proof.platform === "google_pmax" || proof.ad_format === "pmax") {
                             navigate(`/pmax-builder?campaignId=${campaignId}&adProofId=${proof.id}`);
@@ -267,8 +274,8 @@ const CampaignDetail = () => {
                         <Edit className="mr-1 h-3 w-3" />
                         <span className="text-xs">edit</span>
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => setDeleteAdProofId(proof.id)}
                       >
@@ -366,7 +373,7 @@ const CampaignDetail = () => {
       </AlertDialog>
 
       {/* Share Ad Proof Dialog */}
-      <ShareAdProofDialog 
+      <ShareAdProofDialog
         open={adProofShareDialogOpen}
         onOpenChange={setAdProofShareDialogOpen}
         shareToken={selectedAdProofShareToken}

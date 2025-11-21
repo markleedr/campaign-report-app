@@ -88,48 +88,46 @@ export const FacebookCarouselPreview = ({
       )}
 
       {/* Carousel Container - Side by side cards */}
-      <div className="relative bg-background">
-        <div 
+      <div className="relative bg-background group">
+        <div
           className="flex gap-2 p-2 overflow-x-auto scrollbar-hide"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
           {cards.map((cardItem, idx) => (
-            <div 
-              key={idx} 
-              className={`flex-shrink-0 bg-background border border-border rounded-lg overflow-hidden cursor-pointer ${
-                idx === 0 ? 'w-[280px]' : 'w-[180px]'
-              }`}
+            <div
+              key={idx}
+              className="flex-shrink-0 w-[280px] bg-background border border-border rounded-lg overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => setCurrentCard(idx)}
             >
               {/* Card Image */}
               {cardItem.imageUrl ? (
-                <img 
-                  src={cardItem.imageUrl} 
-                  alt={cardItem.headline} 
-                  className="w-full aspect-square object-cover" 
+                <img
+                  src={cardItem.imageUrl}
+                  alt={cardItem.headline}
+                  className="w-full aspect-square object-cover"
                 />
               ) : (
                 <div className="w-full aspect-square bg-muted flex items-center justify-center">
                   <span className="text-xs text-muted-foreground">Card {idx + 1}</span>
                 </div>
               )}
-              
+
               {/* Card Info */}
-              <div className="p-2 bg-muted/20">
+              <div className="p-3 bg-muted/20">
                 <h3 className="font-semibold text-sm text-foreground line-clamp-2 mb-1">
                   {cardItem.headline || `Card ${idx + 1} Headline`}
                 </h3>
-                {idx === 0 && cardItem.description && (
+                {cardItem.description && (
                   <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
                     {cardItem.description}
                   </p>
                 )}
                 {cardItem.callToAction && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="w-full text-xs h-7 bg-background hover:bg-accent mt-2"
                   >
                     {cardItem.callToAction}
@@ -139,6 +137,24 @@ export const FacebookCarouselPreview = ({
             </div>
           ))}
         </div>
+
+        {/* Navigation Arrows */}
+        {currentCard > 0 && (
+          <button
+            onClick={prevCard}
+            className="absolute left-1 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/95 hover:bg-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+          >
+            <ChevronLeft className="w-5 h-5 text-gray-800" />
+          </button>
+        )}
+        {currentCard < cards.length - 1 && (
+          <button
+            onClick={nextCard}
+            className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/95 hover:bg-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+          >
+            <ChevronRight className="w-5 h-5 text-gray-800" />
+          </button>
+        )}
       </div>
 
       {/* Engagement Bar */}
